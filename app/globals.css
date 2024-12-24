@@ -19,3 +19,34 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Customize scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* Width of the scrollbar */
+  height: 4px; /* Height of the scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Scrollbar track background */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888; /* Scrollbar thumb color */
+  border-radius: 10px; /* Round the edges */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Scrollbar thumb hover color */
+}
+.content {
+  @apply flex flex-1 flex-col h-full w-full bg-gradient-to-r from-[#00c6ff] to-[#0072ff] m-2 rounded-xl justify-start items-center
+}
+
+@layer utilities {
+  .hoverBtn {
+    @apply text-black font-bold p-2 bg-transparent rounded-lg transition duration-300;
+  }
+
+  .hoverBtn:hover {
+    @apply bg-white rounded-lg;
+  }
+}
