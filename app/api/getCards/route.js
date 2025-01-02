@@ -11,7 +11,7 @@ export const GET = async () => {
             messages: [
                 {
                     role: "user",
-                    content: "Generate 8 vocabulary cards in English language in JSON format ONLY with the following fields: Word, Meaning, Pronunciation, ExampleSentence. Do not include any explanation or text outside the JSON array.",
+                    content: "Generate 4 vocabulary cards in English language in JSON format ONLY with the following fields: Word, Meaning, Pronunciation, ExampleSentence. Do not include any explanation or text outside the JSON array.",
                 },
             ],
         });
