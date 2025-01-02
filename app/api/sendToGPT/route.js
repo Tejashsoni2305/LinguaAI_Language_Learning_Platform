@@ -7,21 +7,20 @@ const openai = new OpenAI({
 export const POST = async (req) => {
   try {
     // Parse the request body to extract the user's message
-    const { message } = await req.json();
+    const { conversation } = await req.json();
 
-    if (!message) {
-      return new Response(
-        JSON.stringify({ error: "Message is required" }),
-        { status: 400 }
-      );
-    }
+      if (!conversation || !Array.isArray(conversation)) {
+        return new Response(
+          JSON.stringify({ error: "Conversation array is required" }),
+          { status: 400 }
+        );
+      }
+
 
     // Call the OpenAI API to generate a response
     const completion = await openai.chat.completions.create({
-      model: "gpt-4-turbo", // Use your desired model
-      messages: [
-        { role: "user", content: message },
-      ],
+      model: "gpt-4-turbo", // The model to use
+      messages: conversation, // The conversation history
     });
 
     // Extract the response message
