@@ -3,16 +3,20 @@
 import React, { use, useEffect, useState } from "react";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import axios from "axios";
+import { useLanguage } from "@/context/LanguageContext";
+import { db } from "@/lib/firebase"; // Import Firestore instance
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 
 export default function Practice() {
+  const { primaryLanguage, setPrimaryLanguage, language, setLanguage } = useLanguage();
   const [isTextInput, setIsTextInput] = useState(true);
   const [textInput, setTextInput] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState("english");
-  const [primaryLanguage, setPrimaryLanguage] = useState("english");
   const [conversation, setConversation] = useState([{ role: "user", content: "You are LinguaAI, an AI language tutor." }]);
+  const colRef = collection(db, 'users');
+  
 
 
   const playFeedbackAudio = async (message) => {
@@ -37,10 +41,6 @@ export default function Practice() {
       console.error("Error playing feedback audio:", error);
     }
   };
-
-  useEffect(() => {
-    console.log(conversation);
-  }, [conversation]);
 
   
   // useEffect to set up the tutor only when language changes
@@ -96,7 +96,6 @@ export default function Practice() {
     setConversation((prev) => [...prev, newMessage]);
     const updatedConversation = [...conversation, newMessage];
     setTextInput(""); // Clear the input field
-    console.log(updatedConversation);
     try {
       const response = await fetch("/api/sendToGPT", {
         method: "POST",
@@ -192,6 +191,7 @@ export default function Practice() {
               <select
                 id="primaryLanguage"
                 className="p-2 mt-1 rounded-lg text-black font-semibold bg-white hover:bg-[#F6AD55] transition-all duration-300"
+                value={primaryLanguage}
                 onChange={(e) => setPrimaryLanguage(e.target.value)}
               >
                 <option value="english">English</option>
@@ -220,6 +220,7 @@ export default function Practice() {
               <select
                 id="language"
                 className="p-2 mt-1 rounded-lg text-black font-semibold bg-white hover:bg-[#F6AD55] transition-all duration-300"
+                value={language}
                 onChange={(e) => setLanguage(e.target.value)}
               >
                 <option value="english">English</option>
