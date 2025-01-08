@@ -11,7 +11,7 @@ const colRef = collection(db, 'users');
 
 const AuthButton = () => {
   const [user, setUser] = useState(null);
-  const { setPrimaryLanguage, setLanguage } = useLanguage();
+  const { setPrimaryLanguage, setLanguage, setUid, uid } = useLanguage();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -35,6 +35,7 @@ const AuthButton = () => {
         setPrimaryLanguage(userData['primary-language']);
         setLanguage(userData['target-language']);
         setUid(uid);
+        console.log(uid);
       } else {
         console.log('Creating new user');
         await setDoc(userRef, {
@@ -47,6 +48,7 @@ const AuthButton = () => {
           'latest-feedback': '',
         });
         setUid(uid);
+        console.log(uid);
       }
     } catch (error) {
       console.error('Error logging in:', error);
