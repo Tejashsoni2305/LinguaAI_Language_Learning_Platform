@@ -19,6 +19,8 @@ export const GET = async (req) => {
           The primary language is ${primary} so make sure to include meaning in ${primary}. The words should be always beginner and intermediate level and the ExampleUse should be in ${target} and Translation should be in ${primary}. For Explanation, provide translation of each word in ${primary} and show by a '+' sign how all the words formed the sentence.`,
         },
       ],
+      temperature: 0.7,
+      top_p: 0.9,
     });
 
     let aiResponse;

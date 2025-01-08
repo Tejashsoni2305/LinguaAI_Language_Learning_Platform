@@ -3,11 +3,29 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { MagicCard } from "@/components/ui/magic-card";
+import { db } from "@/lib/firebase";
+import { doc, updateDoc, getDoc, arrayUnion } from "firebase/firestore";
+
 
 export default function Cards() {
-  const { primaryLanguage, language } = useLanguage(); // Get context values
+  const { primaryLanguage, language, uid } = useLanguage(); // Get context values
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleCardsDone = async () => {
+    if(uid){
+      const docRef = doc(db, 'users', uid);
+      const words = cards.map(card => card.Word.toUpperCase());
+      await updateDoc(docRef, {
+        'vocab-cards': arrayUnion(...words),
+      });
+      setRefreshTrigger(prev => prev + 1);
+    }
+    else {
+      console.error('UID is not available for setting vocab cards.');
+    } 
+  };
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -29,7 +47,7 @@ export default function Cards() {
     };
 
     fetchCards();
-  }, [primaryLanguage, language]); // Fetch cards whenever the language changes
+  }, [primaryLanguage, language, refreshTrigger]); // Fetch cards whenever the language changes
 
   if (isLoading) {
     return <div>Loading cards...</div>;
@@ -52,6 +70,9 @@ export default function Cards() {
           </div>
         </MagicCard>
       ))}
+      <div className="col-span-full flex justify-center mt-4">
+        <button className="bg-white/80 backdrop-blur-md shadow-md rounded-md p-2 text-black font-bold hover:bg-yellow-500 transition-colors duration-300" onClick={handleCardsDone}>Done</button>
+      </div>
     </div>
   );
 }

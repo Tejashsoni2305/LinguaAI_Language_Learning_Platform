@@ -5,17 +5,15 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import axios from "axios";
 import { useLanguage } from "@/context/LanguageContext";
 import { db } from "@/lib/firebase"; // Import Firestore instance
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, addDoc, updateDoc, deleteDoc, arrayUnion } from "firebase/firestore";
 
 
 export default function Practice() {
-  const { primaryLanguage, setPrimaryLanguage, language, setLanguage } = useLanguage();
+  const { primaryLanguage, setPrimaryLanguage, language, setLanguage, uid } = useLanguage();
   const [isTextInput, setIsTextInput] = useState(true);
   const [textInput, setTextInput] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [conversation, setConversation] = useState([{ role: "user", content: "You are LinguaAI, an AI language tutor." }]);
-  const colRef = collection(db, 'users');
   
 
 
@@ -43,6 +41,37 @@ export default function Practice() {
   };
 
   
+
+const addMessageToHistory = async (message) => {
+  if (!uid) {
+    console.error('UID is not available');
+    return;
+  }
+
+  // Validate the message format
+  if (!message || typeof message !== 'object' || !message.role || !message.content) {
+    console.error('Invalid message format. Expected an object with "role" and "content".');
+    return;
+  }
+
+  try {
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      await updateDoc(docRef, {
+        'conversation-history': arrayUnion(message),
+      });
+      console.log('Message added to conversation history:', message);
+    } else {
+      console.error('No such document!');
+    }
+  } catch (error) {
+    console.error('Error updating conversation history:', error);
+  }
+};
+
+  
   // useEffect to set up the tutor only when language changes
   useEffect(() => {
     const setupLanguageTutor = async () => {
@@ -62,7 +91,8 @@ export default function Practice() {
          Ultimately the goal is to learn the language effectively and efficiently and make the user fluent in the language. So be the best tutor for the user and help him learn the language in the best way possible.`;
 
         const newMessage = [{ role: "user", content: message }];
-        setConversation(newMessage);
+        const newMessageToHistory = { role: "user", content: message };
+        await addMessageToHistory(newMessageToHistory);
         
         const response = await fetch("/api/sendToGPT", {
           method: "POST",
@@ -79,13 +109,22 @@ export default function Practice() {
         const data = await response.json();
         setFeedback(data);
         const newAIResponse = { role: "assistant", content: data };
-        setConversation((prev) => [...prev, newAIResponse]);
+        await addMessageToHistory(newAIResponse);
         
       } catch (error) {
         console.error("Error setting up language tutor:", error);
         setFeedback("Failed to initialize tutoring session.");
       }
     };
+    const setLanguages = async () => {
+      const docRef = doc(db, 'users', uid);
+      await updateDoc(docRef, {
+        'primary-language': primaryLanguage,
+        'target-language': language,
+      });
+    };
+
+    setLanguages();
 
     setupLanguageTutor();
   }, [language, primaryLanguage]);
@@ -93,8 +132,11 @@ export default function Practice() {
   const sendToGPT = async (message) => {
     setIsLoading(true);
     const newMessage = { role: "user", content: message };
-    setConversation((prev) => [...prev, newMessage]);
-    const updatedConversation = [...conversation, newMessage];
+    await addMessageToHistory(newMessage);
+    const docRef = doc(db, 'users', uid);
+    const docSnap = await getDoc(docRef);
+    const updatedConversation = docSnap.data()['conversation-history'];
+
     setTextInput(""); // Clear the input field
     try {
       const response = await fetch("/api/sendToGPT", {
@@ -107,7 +149,7 @@ export default function Practice() {
 
       const data = await response.json();
       const newAIResponse = { role: "assistant", content: data };
-      setConversation((prev) => [...prev, newAIResponse]);
+      await addMessageToHistory(newAIResponse);
       playFeedbackAudio(data);
       setFeedback(data); // Set only the AI's response
       
