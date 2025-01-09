@@ -29,14 +29,37 @@ export default function Cards() {
 
   useEffect(() => {
     const fetchCards = async () => {
+
       try {
         setIsLoading(true);
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/getCards?primary=${primaryLanguage}&target=${language}`
-        );
+
+        const docRef = doc(db, 'users', uid);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          console.error('No such document!');
+          return;
+        }
+
+        const currCards = docSnap.data()['vocab-cards'] || [];
+        const words = currCards.slice(-15); // Get the last 15 words, or fewer if not available
+
+        const res = await fetch('/api/getCards', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            primary: primaryLanguage,
+            target: language,
+            recentWords: words,
+          }),
+        });
+
         if (!res.ok) {
           throw new Error("Failed to fetch cards");
         }
+
         const data = await res.json();
         setCards(data);
       } catch (error) {
@@ -47,7 +70,7 @@ export default function Cards() {
     };
 
     fetchCards();
-  }, [primaryLanguage, language, refreshTrigger]); // Fetch cards whenever the language changes
+  }, [primaryLanguage, language, refreshTrigger]);
 
   if (isLoading) {
     return <div>Loading cards...</div>;
