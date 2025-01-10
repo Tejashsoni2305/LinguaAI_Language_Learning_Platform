@@ -7,12 +7,13 @@ import { useLanguage } from "@/context/LanguageContext";
 import { MagicCard } from "@/components/ui/magic-card";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc, getDoc, arrayUnion } from "firebase/firestore";
+import { useCards } from "@/context/CardsContext";
 
 
 export default function Cards() {
   const [user, setUser] = useState(null);
   const { primaryLanguage, language, uid } = useLanguage(); // Get context values
-  const [cards, setCards] = useState([]);
+  const { cards, isFetched, setCards, setIsFetched } = useCards();   
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -34,6 +35,7 @@ export default function Cards() {
       await updateDoc(docRef, {
         'vocab-cards': arrayUnion(...words),
       });
+      setIsFetched(false);
       setRefreshTrigger(prev => prev + 1);
     }
     else {
@@ -47,6 +49,11 @@ export default function Cards() {
       if(!uid){
         return;
       };
+      if (isFetched && cards.length > 0) {
+        // Cards are already fetched, no need to fetch again
+        setIsLoading(false);
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -80,6 +87,7 @@ export default function Cards() {
 
         const data = await res.json();
         setCards(data);
+        setIsFetched(true);
       } catch (error) {
         console.error("Error fetching cards:", error);
       } finally {

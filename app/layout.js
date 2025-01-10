@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { CardsProvider } from "@/context/CardsContext";
 
 
 
@@ -26,12 +27,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <LanguageProvider>
-            <body
-              className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-            >
-              <NavBar />
-              {children}
-            </body>
+           <CardsProvider>
+              <body
+                  className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                >
+                  <NavBar />
+                  {children}
+                </body>
+           </CardsProvider>
       </LanguageProvider>
     </html>
   );
