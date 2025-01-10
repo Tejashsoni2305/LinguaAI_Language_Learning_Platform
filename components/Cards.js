@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { auth } from "@/lib/firebase";
+import AuthButton from "./AuthButton";
 import { useLanguage } from "@/context/LanguageContext";
 import { MagicCard } from "@/components/ui/magic-card";
 import { db } from "@/lib/firebase";
@@ -8,10 +10,22 @@ import { doc, updateDoc, getDoc, arrayUnion } from "firebase/firestore";
 
 
 export default function Cards() {
+  const [user, setUser] = useState(null);
   const { primaryLanguage, language, uid } = useLanguage(); // Get context values
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    // Listen for authentication state changes
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
 
   const handleCardsDone = async () => {
     if(uid){
@@ -29,6 +43,10 @@ export default function Cards() {
 
   useEffect(() => {
     const fetchCards = async () => {
+
+      if(!uid){
+        return;
+      };
 
       try {
         setIsLoading(true);
@@ -71,6 +89,17 @@ export default function Cards() {
 
     fetchCards();
   }, [primaryLanguage, language, refreshTrigger]);
+
+  if (!user) {
+    return (
+      <div className="flex items-start justify-center h-screen">
+        <div className="mt-2 rounded-xl bg-white/80 backdrop-blur-md shadow-md p-6 text-center">
+          <h1 className="text-2xl font-bold mb-4">Please log in to start learning.</h1>
+             <AuthButton  />
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <div>Loading cards...</div>;

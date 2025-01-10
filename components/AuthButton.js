@@ -22,7 +22,6 @@ const AuthButton = () => {
   }, []);
 
   const handleLogin = async () => {
-    console.log('handleLogin function called');
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const uid = result.user.uid;

@@ -53,6 +53,7 @@ const addMessageToHistory = async (message) => {
     console.error('Invalid message format. Expected an object with "role" and "content".');
     return;
   }
+  const messageToAdd = { ...message, timestamp: new Date().toISOString() };
 
   try {
     const docRef = doc(db, 'users', uid);
@@ -60,9 +61,9 @@ const addMessageToHistory = async (message) => {
 
     if (docSnap.exists()) {
       await updateDoc(docRef, {
-        'conversation-history': arrayUnion(message),
+        'conversation-history': arrayUnion(messageToAdd),
       });
-      console.log('Message added to conversation history:', message);
+      console.log('Message added to conversation history:', messageToAdd);
     } else {
       console.error('No such document!');
     }
@@ -75,6 +76,10 @@ const addMessageToHistory = async (message) => {
   // useEffect to set up the tutor only when language changes
   useEffect(() => {
     const setupLanguageTutor = async () => {
+      if (!uid) {
+        console.log('UID is not available for setting up language tutor.');
+        return;
+      }
       try {
         const message = `Hello GPT, you are now LinguaAI and you are my AI language tutor. My primary language is ${primaryLanguage} and you will teach and help me learn ${language} language.
         The responses should be maximum of 2 sentences so that the user can get faster responses and engage more in conversation than listening more. Make the conversation more interactive and engaging but also effective in learning the language.
@@ -117,6 +122,10 @@ const addMessageToHistory = async (message) => {
       }
     };
     const setLanguages = async () => {
+      if (!uid) {
+        console.log('UID is not available for setting languages.');
+        return;
+      }
       const docRef = doc(db, 'users', uid);
       await updateDoc(docRef, {
         'primary-language': primaryLanguage,

@@ -1,8 +1,10 @@
 "use client";
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image';
 import AuthButton from './AuthButton';
+import { auth } from '@/lib/firebase';
+
 
 
 
@@ -12,6 +14,24 @@ export default function NavBar() {
   const toggleBurger = () => {
     setBurger(!burger);
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // Perform logout actions here
+      auth.signOut(); // Sign out the user using Firebase auth
+      sessionStorage.clear(); // Clear session storage if used
+  
+      // Optionally, show a confirmation dialog
+      event.preventDefault();
+      event.returnValue = ''; // This line is necessary for some browsers to show the confirmation dialog
+    };
+  
+    window.addEventListener('beforeunload', handleBeforeUnload);
+  
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <nav className="flex justify-between items-center w-full py-2 bg-gradient-to-r from-blue-500 to-green-500 shadow-md sm:w-full m-1 rounded-lg">
