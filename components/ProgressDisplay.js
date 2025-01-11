@@ -38,55 +38,61 @@ export default function ProgressDisplay() {
       };
   
       getUserData();
-    //   getProgressReport();
     }, [uid]);
   
-    const getProgressReport = async () => {
-      try {
-        const response = await fetch('/api/getProgressReport', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            history,
-            lastFeedback,
-            lastPercentage,
-            primaryLanguage,
-            language,
-          }),
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to fetch progress report');
-        }
-  
-        const data = await response.json();
-        const aiResponse = data.aiResponse;
-  
-        // Extract feedback and percentage using regex
-        const feedbackMatch = aiResponse.match(/latest-feedback: (.*?)(?=\n|$)/s);
-        const percentageMatch = aiResponse.match(/latest-percentage: (\d+)/);
-    
-        const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback available';
-        const percentage = percentageMatch ? parseInt(percentageMatch[1], 10) : 0;
-    
-        setNewFeedback(feedback);
-        setNewPercentage(percentage);
-        
-        const userRef = doc(collection(db, 'users'), uid);
-        const userDoc = await getDoc(userRef);
-        if(userDoc.exists()){
-          await updateDoc(userRef, {
-            'latest-feedback': newFeedback,
-            'last-percent-progress': newPercentage,
-          });
-        };
-  
-      } catch (error) {
-        console.error('Error fetching progress report:', error);
+    useEffect(() => {
+      if (!uid) {
+        return; // Avoid calling if necessary data isn't ready
       }
-    };
+  
+      const getProgressReport = async () => {
+        try {
+          const response = await fetch('/api/getProgressReport', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              history,
+              lastFeedback,
+              lastPercentage,
+              primaryLanguage,
+              language,
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error('Failed to fetch progress report');
+          }
+  
+          const data = await response.json();
+          const aiResponse = data.aiResponse;
+  
+          // Extract feedback and percentage using regex
+          const feedbackMatch = aiResponse.match(/latest-feedback: (.*?)(?=\n|$)/s);
+          const percentageMatch = aiResponse.match(/latest-percentage: (\d+)/);
+  
+          const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback available';
+          const percentage = percentageMatch ? parseInt(percentageMatch[1], 10) : 0;
+  
+          setNewFeedback(feedback);
+          setNewPercentage(percentage);
+  
+          const userRef = doc(collection(db, 'users'), uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            await updateDoc(userRef, {
+              'latest-feedback': feedback,
+              'last-percent-progress': percentage,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching progress report:', error);
+        }
+      };
+  
+      getProgressReport();
+    }, [uid, lastFeedback, lastPercentage, history, primaryLanguage, language]);
 
   return (
     <div className='flex flex-col items-center justify-center'>

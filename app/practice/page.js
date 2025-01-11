@@ -63,7 +63,6 @@ const addMessageToHistory = async (message) => {
       await updateDoc(docRef, {
         'conversation-history': arrayUnion(messageToAdd),
       });
-      console.log('Message added to conversation history:', messageToAdd);
     } else {
       console.error('No such document!');
     }

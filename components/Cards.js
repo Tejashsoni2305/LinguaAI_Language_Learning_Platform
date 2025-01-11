@@ -17,6 +17,8 @@ export default function Cards() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+
+
   useEffect(() => {
     // Listen for authentication state changes
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -26,6 +28,8 @@ export default function Cards() {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
+
+
 
 
   const handleCardsDone = async () => {
@@ -47,13 +51,10 @@ export default function Cards() {
     const fetchCards = async () => {
 
       if(!uid){
+
         return;
       };
-      if (isFetched && cards.length > 0) {
-        // Cards are already fetched, no need to fetch again
-        setIsLoading(false);
-        return;
-      }
+      
 
       try {
         setIsLoading(true);
@@ -96,7 +97,7 @@ export default function Cards() {
     };
 
     fetchCards();
-  }, [primaryLanguage, language, refreshTrigger]);
+  }, [uid, primaryLanguage, language, refreshTrigger]);
 
   if (!user) {
     return (

@@ -43,7 +43,7 @@ const AuthButton = () => {
           'primary-language': 'English',
           'target-language': 'English',
           'vocab-cards': 0,
-          'latest-progress-percent': 0,
+          'last-percent-progress': 0,
           'latest-feedback': '',
         });
         setUid(uid);
